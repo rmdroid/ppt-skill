@@ -771,6 +771,15 @@
             margin-top: 2rem;
         }
 
+        code {
+            background: rgba(59, 130, 246, 0.15);
+            color: var(--accent-primary);
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            font-family: 'Monaco', 'Consolas', monospace;
+            font-size: 0.9em;
+        }
+
         @media (max-width: 1024px) {
             main {
                 padding: 3rem 3rem;
@@ -936,7 +945,7 @@
                 <li><a href="#slide4" data-slide="4"><span class="slide-number">4</span>Was du brauchst</a></li>
                 <li><a href="#slide5" data-slide="5"><span class="slide-number">5</span>GitHub Setup</a></li>
                 <li><a href="#slide6" data-slide="6"><span class="slide-number">6</span>Claude Setup</a></li>
-                <li><a href="#slide7" data-slide="7"><span class="slide-number">7</span>Der Skill</a></li>
+                <li><a href="#slide7" data-slide="7"><span class="slide-number">7</span>Skill-Dialog</a></li>
                 <li><a href="#slide8" data-slide="8"><span class="slide-number">8</span>Erste Präsentation</a></li>
                 <li><a href="#slide9" data-slide="9"><span class="slide-number">9</span>Best Practices</a></li>
                 <li><a href="#slide10" data-slide="10"><span class="slide-number">10</span>Troubleshooting</a></li>
@@ -1204,35 +1213,70 @@ Token kopieren und sicher speichern!</pre>
 
                 <div class="tab-container">
                     <div class="tab-buttons">
-                        <button class="tab-btn active" onclick="switchTab('desktop-app')">Desktop App</button>
-                        <button class="tab-btn" onclick="switchTab('cli-setup')">CLI Setup</button>
+                        <button class="tab-btn active" onclick="switchTab('web-version')">Claude.ai Web Version</button>
+                        <button class="tab-btn" onclick="switchTab('cli-setup')">Claude Code CLI</button>
                     </div>
 
-                    <div class="tab-content active" id="desktop-app">
+                    <div class="tab-content active" id="web-version">
                         <div class="glass-card">
-                            <h3><span class="step-number">1</span>Claude Projekt erstellen</h3>
+                            <h3><span class="step-number">1</span>Skills & Skill Builder aktivieren</h3>
                             <ul>
-                                <li>Claude.ai → Neues Projekt</li>
-                                <li>Name: "Präsentationen" (oder spezifischer)</li>
-                                <li>Claude Code aktivieren</li>
+                                <li>Claude.ai → Settings (Einstellungen)</li>
+                                <li>Feature Previews → "Fähigkeiten" (Skills) aktivieren</li>
+                                <li>Skill Builder aktivieren</li>
                             </ul>
                         </div>
 
                         <div class="glass-card">
-                            <h3><span class="step-number">2</span>GitHub Token hinterlegen</h3>
+                            <h3><span class="step-number">2</span>Skill mit Claude erstellen</h3>
+                            <p><strong>Neuen Chat starten</strong> und mit Claude sprechen:</p>
                             <div class="code-block">
                                 <button class="copy-btn" onclick="copyCode(this)">Copy</button>
-                                <pre>In Claude Code Projekt:
-Environment Variables →
-GITHUB_TOKEN=ghp_IhrTokenHier</pre>
+                                <pre>"Erstelle einen Präsentations-Skill für interaktive HTML-Präsentationen.
+
+Der Skill soll:
+- Responsive HTML-Seiten generieren (Desktop + Mobile)
+- Corporate Identity nutzen (meine Firmenfarben)
+- Interaktive Elemente einbauen (Tabs, Accordions, etc.)
+- Automatisch auf GitHub Pages deployen
+
+Stelle mir Fragen zu meinen Design-Vorgaben."</pre>
                             </div>
-                            <p style="margin-top: 1rem;">Alternativ: Token bei jeder Präsentation manuell angeben (sicherer, aber umständlicher)</p>
+                            <div class="solution-box" style="margin-top: 1rem;">
+                                <p><strong>Claude stellt dir dann Fragen</strong> zu Design, Farben, Features, Tonalität - ihr entwickelt den Skill iterativ zusammen!</p>
+                            </div>
+                        </div>
+
+                        <div class="glass-card">
+                            <h3><span class="step-number">3</span>Skill installieren</h3>
+                            <ul>
+                                <li>Nach Fertigstellung gibt Claude dir einen <strong>ZIP-Download</strong></li>
+                                <li>ZIP-Datei herunterladen</li>
+                                <li>Settings → Fähigkeiten → <strong>Skill hochladen</strong></li>
+                                <li>ZIP-Datei auswählen und installieren</li>
+                            </ul>
+                            <div class="highlight-box" style="margin-top: 1rem;">
+                                <p><strong>Fertig!</strong> Skill ist jetzt global verfügbar - verwendbar in jedem Chat</p>
+                            </div>
+                        </div>
+
+                        <div class="glass-card">
+                            <h3><span class="step-number">4</span>GitHub Konnektor einrichten</h3>
+                            <ul>
+                                <li>Settings → Konnektoren</li>
+                                <li>GitHub verbinden</li>
+                                <li>Autorisierung durchführen</li>
+                                <li>Repository-Zugriff erlauben</li>
+                            </ul>
+                            <div class="solution-box" style="margin-top: 1rem;">
+                                <p><strong>Vorteil:</strong> Claude kann dann direkt auf GitHub pushen, Pages aktivieren und dir den Live-Link geben</p>
+                            </div>
                         </div>
                     </div>
 
                     <div class="tab-content" id="cli-setup">
                         <div class="glass-card">
-                            <h3>Claude Code CLI Installation</h3>
+                            <h3><span class="step-number">1</span>Claude Code CLI Installation</h3>
                             <div class="code-block">
                                 <button class="copy-btn" onclick="copyCode(this)">Copy</button>
                                 <pre># Installation via npm
@@ -1247,27 +1291,70 @@ claude auth login</pre>
                         </div>
 
                         <div class="glass-card">
-                            <h3>CLI-Vorteile</h3>
-                            <ul class="checklist">
-                                <li>Direkt im Terminal arbeiten</li>
-                                <li>Schneller für repetitive Tasks</li>
-                                <li>Scripting & Automation möglich</li>
-                                <li>Git-Integration nahtlos</li>
-                            </ul>
+                            <h3><span class="step-number">2</span>Skill mit Claude erstellen</h3>
+                            <p><strong>Im Terminal:</strong> Claude Code starten und Skill-Erstellung beauftragen</p>
+                            <div class="code-block">
+                                <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                                <pre># Claude starten
+claude
+
+# Im Dialog mit Claude:
+"Erstelle einen Präsentations-Skill für interaktive HTML-Präsentationen.
+
+Der Skill soll:
+- Responsive HTML-Seiten generieren (Desktop + Mobile)
+- Corporate Identity nutzen (meine Firmenfarben)
+- Interaktive Elemente einbauen (Tabs, Accordions, etc.)
+- Automatisch auf GitHub Pages deployen
+
+Stell mir Fragen zu meinen Design-Vorgaben."</pre>
+                            </div>
+                            <div class="solution-box" style="margin-top: 1rem;">
+                                <p><strong>Claude stellt dir Fragen im Terminal</strong> - ihr entwickelt den Skill iterativ zusammen!</p>
+                            </div>
                         </div>
 
                         <div class="glass-card">
-                            <h3>Verwendung</h3>
+                            <h3><span class="step-number">3</span>Skill speichern</h3>
+                            <p>Nach der Fertigstellung sag Claude einfach, wo der Skill gespeichert werden soll:</p>
                             <div class="code-block">
                                 <button class="copy-btn" onclick="copyCode(this)">Copy</button>
-                                <pre># Präsentation erstellen
-claude "Erstelle eine Präsentation über X"
+                                <pre># Für globale Verfügbarkeit (alle Projekte):
+"Speichere diesen Skill global"
 
-# Mit Projekt-Kontext
-claude --project praesentationen "Neue Präsentation"
+# Oder für projekt-spezifische Nutzung:
+"Speichere diesen Skill projektbezogen"</pre>
+                            </div>
+                            <div class="highlight-box" style="margin-top: 1rem;">
+                                <p><strong>Claude speichert automatisch</strong> - kein manuelles Datei-Erstellen nötig!</p>
+                            </div>
+                        </div>
 
-# Mit globalem Skill
-claude --skill presentation "Thema: AI Act"</pre>
+                        <div class="glass-card">
+                            <h3><span class="step-number">4</span>GitHub Zugang einrichten</h3>
+                            <p><strong>Standard-Methode:</strong> Terminal Git mit SSH oder Token</p>
+                            <div class="code-block">
+                                <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                                <pre># SSH-Key generieren (falls noch nicht vorhanden)
+ssh-keygen -t ed25519 -C "deine@email.com"
+
+# Oder: GitHub Token verwenden
+git config --global credential.helper store</pre>
+                            </div>
+                            <div class="highlight-box" style="margin-top: 1rem;">
+                                <p><strong>Optional:</strong> GitHub MCP Server für erweiterte Integration installierbar</p>
+                            </div>
+                        </div>
+
+                        <div class="glass-card">
+                            <h3><span class="step-number">5</span>Skill verwenden</h3>
+                            <div class="code-block">
+                                <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                                <pre># Mit installiertem Skill:
+claude "Erstelle eine Präsentation über Digitale Transformation"
+
+# Skill wird automatisch erkannt und verwendet
+# Direkt auf GitHub Pages deployen lassen</pre>
                             </div>
                         </div>
                     </div>
@@ -1275,98 +1362,84 @@ claude --skill presentation "Thema: AI Act"</pre>
             </section>
 
             <section id="slide7">
-                <h2>Schritt 3 - Der Skill</h2>
+                <h2>Schritt 3 - Der iterative Prozess</h2>
 
-                <div class="tab-container">
-                    <div class="tab-buttons">
-                        <button class="tab-btn active" onclick="switchTab('project-skill')">Projekt-Skill</button>
-                        <button class="tab-btn" onclick="switchTab('global-skill')">Globaler Skill</button>
-                    </div>
+                <p style="font-size: 1.15rem; margin-bottom: 2rem;">Claude erstellt den Skill MIT dir zusammen - nicht FÜR dich. Der Prozess ist interaktiv und passt sich deinen Bedürfnissen an.</p>
 
-                    <div class="tab-content active" id="project-skill">
-                        <div class="glass-card">
-                            <h3>Projekt-spezifischer Skill</h3>
-                            <p>Für Präsentationen innerhalb eines Claude-Projekts</p>
+                <div class="glass-card">
+                    <h3>Was Claude dich fragen wird</h3>
+                    <p>Beispiel-Dialog bei der Skill-Erstellung:</p>
+                </div>
 
-                            <div class="code-block">
-                                <button class="copy-btn" onclick="copyCode(this)">Copy</button>
-                                <pre># Präsentations-Skill Template
-
-Du bist ein Experte für interaktive HTML-Präsentationen.
-
-## Output-Format:
-- Moderne, responsive HTML-Seite
-- Navigation: Desktop = Sidebar, Mobile = Hamburger-Menü
-- Clean Design, kein Framework-Overhead
-- Inline CSS für Performance
-
-## Corporate Identity (ANPASSEN!):
-- Primärfarbe: #3b82f6 (Modern Blue)
-- Sekundärfarbe: #8b5cf6 (Purple)
-- Akzentfarbe: #06b6d4 (Cyan)
-- Schriftart: System Fonts (SF Pro, Segoe UI)
-- Tonalität: Professionell, direkt, lösungsorientiert
-
-## Struktur:
-Jede Präsentation hat:
-1. Navigierbare Sections (Sidebar)
-2. Responsive Layout (Mobile + Desktop)
-3. Interaktive Elemente wo sinnvoll
-4. Code-Blöcke mit Copy-Funktion
-5. Slide-Counter unten rechts
-6. Progress Bar oben
-7. Keyboard Navigation (Pfeiltasten)
-
-## Deployment:
-Nach Erstellung:
-1. Generiere index.html (Single File)
-2. Pushe zu GitHub Repository
-3. Aktiviere GitHub Pages
-4. Gib mir den Live-Link aus</pre>
-                            </div>
-
-                            <div class="highlight-box">
-                                <p><strong>Speicherort:</strong> Im Claude-Projekt unter "Custom Instructions" oder als Projekt-File</p>
-                            </div>
+                <div class="timeline">
+                    <div class="timeline-item">
+                        <div class="timeline-marker"></div>
+                        <div class="timeline-content">
+                            <h3 style="margin-top: 0;">Frage 1: Corporate Identity</h3>
+                            <p><strong>Claude:</strong> "Welche Farben soll ich für deine Präsentationen verwenden? Hast du eine Primär- und Sekundärfarbe (Hex-Codes)?"</p>
+                            <p><strong>Du:</strong> "Primär: #2563eb (Blau), Sekundär: #8b5cf6 (Lila)"</p>
                         </div>
                     </div>
-
-                    <div class="tab-content" id="global-skill">
-                        <div class="glass-card">
-                            <h3>Globaler Skill - Projektübergreifend</h3>
-                            <p>Zugriff auf den Skill von überall, nicht nur in einem Projekt</p>
-
-                            <div class="code-block">
-                                <button class="copy-btn" onclick="copyCode(this)">Copy</button>
-                                <pre># 1. Skill-Datei erstellen
-mkdir -p ~/.claude/skills
-nano ~/.claude/skills/presentation.md
-
-# 2. Skill-Content einfügen (siehe Projekt-Skill)
-
-# 3. Skill verwenden
-claude --skill presentation "Erstelle Präsentation über X"
-
-# Oder in Claude Desktop:
-/skill presentation</pre>
-                            </div>
+                    <div class="timeline-item">
+                        <div class="timeline-marker"></div>
+                        <div class="timeline-content">
+                            <h3 style="margin-top: 0;">Frage 2: Design-Stil</h3>
+                            <p><strong>Claude:</strong> "Welchen Design-Stil bevorzugst du? Modern & minimalistisch, Corporate & professionell, oder kreativ & verspielt?"</p>
+                            <p><strong>Du:</strong> "Modern & minimalistisch mit Dark Mode"</p>
                         </div>
-
-                        <div class="glass-card">
-                            <h3>Vorteile globaler Skills</h3>
-                            <ul class="checklist">
-                                <li>Projektübergreifend verfügbar</li>
-                                <li>Zentrale Wartung (einmal anpassen, überall aktiv)</li>
-                                <li>Schneller Zugriff via CLI</li>
-                                <li>Ideal für wiederkehrende Aufgaben</li>
-                                <li>Versionierung möglich (Git in ~/.claude/)</li>
-                            </ul>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-marker"></div>
+                        <div class="timeline-content">
+                            <h3 style="margin-top: 0;">Frage 3: Interaktivität</h3>
+                            <p><strong>Claude:</strong> "Welche interaktiven Elemente sollen Standard sein? Tabs, Accordions, Timelines, animierte Zahlen?"</p>
+                            <p><strong>Du:</strong> "Tabs, Accordions und animierte Stat-Boxes"</p>
                         </div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-marker"></div>
+                        <div class="timeline-content">
+                            <h3 style="margin-top: 0;">Frage 4: Deployment</h3>
+                            <p><strong>Claude:</strong> "Soll ich automatisch auf GitHub Pages deployen und den Live-Link ausgeben?"</p>
+                            <p><strong>Du:</strong> "Ja, automatisch deployen"</p>
+                        </div>
+                    </div>
+                </div>
 
-                        <div class="solution-box">
-                            <h3>Empfehlung</h3>
-                            <p><strong>Global für Standard-Präsentationen</strong> mit allgemeinem CI<br>
-                            <strong>Projekt-spezifisch</strong> für Kunden mit speziellem Branding</p>
+                <div class="solution-box" style="margin-top: 3rem;">
+                    <h3>Nach dem Dialog</h3>
+                    <ul class="checklist">
+                        <li>Claude erstellt den Skill basierend auf deinen Antworten</li>
+                        <li>Du kannst Anpassungen verlangen ("Mach die Farbe etwas heller")</li>
+                        <li>Iteratives Feintuning bis du zufrieden bist</li>
+                        <li><strong>Web:</strong> ZIP-Download + Installation</li>
+                        <li><strong>CLI:</strong> "Speichere global/projektbezogen"</li>
+                    </ul>
+                </div>
+
+                <div class="highlight-box" style="margin-top: 2rem;">
+                    <h3>💡 Tipp: Mehrere Skills erstellen</h3>
+                    <p>Für verschiedene Anwendungsfälle separate Skills erstellen:</p>
+                    <div class="feature-grid" style="margin-top: 1.5rem;">
+                        <div class="feature-card">
+                            <span class="feature-icon">🎨</span>
+                            <h3 style="font-size: 1.15rem;">presentation-standard</h3>
+                            <p>Standard Corporate Design</p>
+                        </div>
+                        <div class="feature-card">
+                            <span class="feature-icon">🌙</span>
+                            <h3 style="font-size: 1.15rem;">presentation-dark</h3>
+                            <p>Dark Mode Variante</p>
+                        </div>
+                        <div class="feature-card">
+                            <span class="feature-icon">👔</span>
+                            <h3 style="font-size: 1.15rem;">presentation-kunde-a</h3>
+                            <p>Kunde-spezifisches Branding</p>
+                        </div>
+                        <div class="feature-card">
+                            <span class="feature-icon">✨</span>
+                            <h3 style="font-size: 1.15rem;">presentation-minimal</h3>
+                            <p>Minimalistisches Design</p>
                         </div>
                     </div>
                 </div>
