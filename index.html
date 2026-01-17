@@ -1,0 +1,1798 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Von PowerPoint zu Code - Interaktive Präsentationen mit Claude</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-color: #0f172a;
+            --bg-secondary: #1e293b;
+            --text-color: #e2e8f0;
+            --text-muted: #94a3b8;
+            --accent-primary: #3b82f6;
+            --accent-secondary: #8b5cf6;
+            --accent-tertiary: #06b6d4;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --error: #ef4444;
+            --border-color: #334155;
+            --glass-bg: rgba(30, 41, 59, 0.7);
+            --sidebar-width: 320px;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes slideInLeft {
+            from {
+                opacity: 0;
+                transform: translateX(-50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.5;
+            }
+        }
+
+        @keyframes gradientShift {
+            0% {
+                background-position: 0% 50%;
+            }
+            50% {
+                background-position: 100% 50%;
+            }
+            100% {
+                background-position: 0% 50%;
+            }
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+            color: var(--text-color);
+            background: var(--bg-color);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        .background-gradient {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(-45deg, #0f172a, #1e293b, #0f172a, #1e3a5f);
+            background-size: 400% 400%;
+            animation: gradientShift 15s ease infinite;
+            z-index: -1;
+        }
+
+        .container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        nav {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: var(--sidebar-width);
+            height: 100vh;
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border-right: 1px solid var(--border-color);
+            overflow-y: auto;
+            padding: 2rem 1.5rem;
+            z-index: 100;
+            box-shadow: 0 0 40px rgba(0, 0, 0, 0.3);
+        }
+
+        nav::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        nav::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        nav::-webkit-scrollbar-thumb {
+            background: var(--accent-primary);
+            border-radius: 3px;
+        }
+
+        nav h2 {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 700;
+        }
+
+        .nav-subtitle {
+            font-size: 0.875rem;
+            color: var(--text-muted);
+            margin-bottom: 2rem;
+        }
+
+        nav ul {
+            list-style: none;
+        }
+
+        nav li {
+            margin-bottom: 0.25rem;
+        }
+
+        nav a {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 1rem;
+            color: var(--text-muted);
+            text-decoration: none;
+            border-radius: 12px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            font-size: 0.95rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        nav a::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 0;
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
+            transition: width 0.3s ease;
+            z-index: -1;
+        }
+
+        nav a:hover {
+            color: var(--text-color);
+            transform: translateX(5px);
+        }
+
+        nav a:hover::before {
+            width: 100%;
+        }
+
+        nav a.active {
+            color: white;
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);
+        }
+
+        .slide-number {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 28px;
+            height: 28px;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            margin-right: 0.75rem;
+            font-weight: 600;
+            font-size: 0.85rem;
+            transition: all 0.3s ease;
+        }
+
+        nav a.active .slide-number {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .hamburger {
+            display: none;
+            position: fixed;
+            top: 1.5rem;
+            right: 1.5rem;
+            z-index: 200;
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            color: white;
+            border: none;
+            padding: 0.875rem;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 1.5rem;
+            width: 56px;
+            height: 56px;
+            box-shadow: 0 4px 20px rgba(59, 130, 246, 0.4);
+            transition: all 0.3s ease;
+        }
+
+        .hamburger:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 25px rgba(59, 130, 246, 0.5);
+        }
+
+        main {
+            margin-left: var(--sidebar-width);
+            flex: 1;
+            padding: 4rem 5rem;
+            max-width: 1100px;
+        }
+
+        section {
+            min-height: 100vh;
+            padding: 6rem 0;
+            scroll-margin-top: 2rem;
+            opacity: 0;
+            animation: fadeInUp 0.8s ease forwards;
+        }
+
+        section:nth-child(even) {
+            animation-delay: 0.1s;
+        }
+
+        h1 {
+            font-size: 4.5rem;
+            margin-bottom: 1.5rem;
+            background: linear-gradient(135deg, #fff, var(--accent-tertiary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            line-height: 1.1;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+        }
+
+        h2 {
+            font-size: 3.5rem;
+            margin-bottom: 2rem;
+            background: linear-gradient(135deg, #fff, var(--accent-primary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            line-height: 1.2;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+        }
+
+        h3 {
+            font-size: 1.75rem;
+            margin: 2.5rem 0 1.5rem;
+            color: white;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        h3::before {
+            content: '';
+            width: 4px;
+            height: 28px;
+            background: linear-gradient(180deg, var(--accent-primary), var(--accent-secondary));
+            border-radius: 2px;
+        }
+
+        p {
+            margin-bottom: 1.5rem;
+            font-size: 1.15rem;
+            color: var(--text-muted);
+            line-height: 1.8;
+        }
+
+        .subtitle {
+            font-size: 1.75rem;
+            color: var(--text-muted);
+            margin-bottom: 3rem;
+            font-weight: 400;
+        }
+
+        ul, ol {
+            margin: 1.5rem 0;
+            padding-left: 2rem;
+        }
+
+        li {
+            margin-bottom: 1rem;
+            font-size: 1.125rem;
+            color: var(--text-muted);
+            line-height: 1.7;
+        }
+
+        .glass-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 2.5rem;
+            margin: 2rem 0;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .glass-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+            border-color: var(--accent-primary);
+        }
+
+        .code-block {
+            position: relative;
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 2rem;
+            margin: 2rem 0;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .code-block::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 40px;
+            background: linear-gradient(90deg, rgba(59, 130, 246, 0.1), rgba(139, 92, 246, 0.1));
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .code-block:hover {
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 30px rgba(59, 130, 246, 0.2);
+        }
+
+        .code-block pre {
+            font-family: 'Monaco', 'Consolas', monospace;
+            font-size: 0.95rem;
+            line-height: 1.7;
+            color: #e2e8f0;
+            white-space: pre-wrap;
+            margin-top: 2rem;
+        }
+
+        .copy-btn {
+            position: absolute;
+            top: 0.75rem;
+            right: 0.75rem;
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            color: white;
+            border: none;
+            padding: 0.625rem 1.25rem;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 0.875rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+        }
+
+        .copy-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
+        }
+
+        .copy-btn.copied {
+            background: linear-gradient(135deg, var(--success), #059669);
+        }
+
+        .slide-counter {
+            position: fixed;
+            bottom: 2.5rem;
+            right: 2.5rem;
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            color: white;
+            padding: 1rem 1.75rem;
+            border-radius: 50px;
+            font-size: 0.95rem;
+            font-weight: 700;
+            z-index: 50;
+            box-shadow: 0 8px 30px rgba(59, 130, 246, 0.4);
+            backdrop-filter: blur(10px);
+        }
+
+        .highlight-box {
+            background: linear-gradient(135deg, rgba(251, 191, 36, 0.1), rgba(245, 158, 11, 0.1));
+            border-left: 4px solid var(--warning);
+            padding: 2rem;
+            margin: 2rem 0;
+            border-radius: 12px;
+            backdrop-filter: blur(10px);
+        }
+
+        .problem-box {
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.1), rgba(220, 38, 38, 0.1));
+            border-left: 4px solid var(--error);
+            padding: 2rem;
+            margin: 2rem 0;
+            border-radius: 12px;
+            backdrop-filter: blur(10px);
+        }
+
+        .solution-box {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(5, 150, 105, 0.1));
+            border-left: 4px solid var(--success);
+            padding: 2rem;
+            margin: 2rem 0;
+            border-radius: 12px;
+            backdrop-filter: blur(10px);
+        }
+
+        .checklist {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .checklist li {
+            padding: 1rem 1rem 1rem 3rem;
+            position: relative;
+            margin-bottom: 0.75rem;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 10px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .checklist li:hover {
+            background: rgba(255, 255, 255, 0.06);
+            transform: translateX(5px);
+        }
+
+        .checklist li::before {
+            content: "✓";
+            position: absolute;
+            left: 1rem;
+            color: var(--success);
+            font-weight: bold;
+            font-size: 1.25rem;
+            transition: all 0.3s ease;
+        }
+
+        .checklist li:hover::before {
+            transform: scale(1.2);
+        }
+
+        .step-number {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            color: white;
+            width: 3rem;
+            height: 3rem;
+            border-radius: 50%;
+            margin-right: 1rem;
+            font-weight: 700;
+            font-size: 1.25rem;
+            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);
+        }
+
+        .progress-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary), var(--accent-tertiary));
+            transform-origin: left;
+            z-index: 1000;
+            transition: transform 0.1s ease;
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .feature-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 2rem;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-8px) scale(1.02);
+            border-color: var(--accent-primary);
+            box-shadow: 0 12px 40px rgba(59, 130, 246, 0.3);
+        }
+
+        .feature-icon {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            display: block;
+        }
+
+        .stat-box {
+            display: inline-flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 2rem;
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border-radius: 16px;
+            margin: 1rem;
+            min-width: 180px;
+            transition: all 0.3s ease;
+        }
+
+        .stat-box:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 30px rgba(59, 130, 246, 0.3);
+        }
+
+        .stat-number {
+            font-size: 3rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            line-height: 1;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            font-size: 0.95rem;
+            color: var(--text-muted);
+            text-align: center;
+        }
+
+        .timeline {
+            position: relative;
+            padding: 2rem 0;
+            margin: 2rem 0;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 30px;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: linear-gradient(180deg, var(--accent-primary), var(--accent-secondary));
+        }
+
+        .timeline-item {
+            position: relative;
+            padding-left: 80px;
+            margin-bottom: 3rem;
+            opacity: 0;
+            transform: translateX(-30px);
+            animation: slideInLeft 0.6s ease forwards;
+        }
+
+        .timeline-item:nth-child(1) { animation-delay: 0.1s; }
+        .timeline-item:nth-child(2) { animation-delay: 0.2s; }
+        .timeline-item:nth-child(3) { animation-delay: 0.3s; }
+        .timeline-item:nth-child(4) { animation-delay: 0.4s; }
+
+        .timeline-marker {
+            position: absolute;
+            left: 18px;
+            width: 24px;
+            height: 24px;
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            border-radius: 50%;
+            border: 4px solid var(--bg-color);
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.2);
+        }
+
+        .timeline-content {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.5rem;
+        }
+
+        .tab-container {
+            margin: 2rem 0;
+        }
+
+        .tab-buttons {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .tab-btn {
+            padding: 0.875rem 1.75rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1rem;
+            font-weight: 600;
+        }
+
+        .tab-btn:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: var(--accent-primary);
+        }
+
+        .tab-btn.active {
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            color: white;
+            border-color: transparent;
+            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);
+        }
+
+        .tab-content {
+            display: none;
+            animation: fadeInUp 0.5s ease;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 0.375rem 0.875rem;
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(139, 92, 246, 0.2));
+            border: 1px solid var(--accent-primary);
+            border-radius: 20px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--accent-primary);
+            margin: 0.25rem;
+        }
+
+        .author-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 3rem;
+            margin: 3rem 0;
+            text-align: center;
+            transition: all 0.4s ease;
+        }
+
+        .author-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 60px rgba(59, 130, 246, 0.3);
+            border-color: var(--accent-primary);
+        }
+
+        .author-name {
+            font-size: 2.5rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #fff, var(--accent-tertiary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 1rem;
+        }
+
+        .author-titles {
+            font-size: 1.25rem;
+            color: var(--accent-primary);
+            margin-bottom: 2rem;
+            font-weight: 600;
+        }
+
+        .accordion {
+            margin: 2rem 0;
+        }
+
+        .accordion-item {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            margin-bottom: 1rem;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .accordion-header {
+            padding: 1.5rem;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+
+        .accordion-header:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .accordion-icon {
+            transition: transform 0.3s ease;
+            font-size: 1.25rem;
+            color: var(--accent-primary);
+        }
+
+        .accordion-item.active .accordion-icon {
+            transform: rotate(180deg);
+        }
+
+        .accordion-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+        }
+
+        .accordion-item.active .accordion-content {
+            max-height: 1000px;
+        }
+
+        .accordion-body {
+            padding: 0 1.5rem 1.5rem;
+        }
+
+        @media (max-width: 1024px) {
+            main {
+                padding: 3rem 3rem;
+            }
+
+            h1 {
+                font-size: 3.5rem;
+            }
+
+            h2 {
+                font-size: 2.75rem;
+            }
+        }
+
+        @media (max-width: 768px) {
+            nav {
+                transform: translateX(-100%);
+                transition: transform 0.3s;
+                width: 100%;
+                max-width: 320px;
+            }
+
+            nav.open {
+                transform: translateX(0);
+            }
+
+            .hamburger {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            main {
+                margin-left: 0;
+                padding: 2rem 1.5rem;
+            }
+
+            h1 {
+                font-size: 2.5rem;
+            }
+
+            h2 {
+                font-size: 2rem;
+            }
+
+            .subtitle {
+                font-size: 1.25rem;
+            }
+
+            section {
+                padding: 3rem 0;
+            }
+
+            .slide-counter {
+                bottom: 1.5rem;
+                right: 1.5rem;
+                padding: 0.75rem 1.25rem;
+            }
+
+            .feature-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .stat-box {
+                width: 100%;
+                margin: 0.5rem 0;
+            }
+
+            .timeline::before {
+                left: 15px;
+            }
+
+            .timeline-item {
+                padding-left: 50px;
+            }
+
+            .timeline-marker {
+                left: 3px;
+            }
+        }
+
+        @media print {
+            nav, .hamburger, .slide-counter, .copy-btn, .progress-bar {
+                display: none;
+            }
+
+            main {
+                margin-left: 0;
+            }
+
+            section {
+                page-break-after: always;
+            }
+
+            .glass-card, .code-block, .feature-card {
+                break-inside: avoid;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="background-gradient"></div>
+    <div class="progress-bar" id="progress-bar"></div>
+    <button class="hamburger" aria-label="Menu">☰</button>
+
+    <div class="container">
+        <nav id="nav">
+            <h2>Navigation</h2>
+            <p class="nav-subtitle">12 Interactive Slides</p>
+            <ul id="nav-list">
+                <li><a href="#slide1" data-slide="1"><span class="slide-number">1</span>Titel</a></li>
+                <li><a href="#slide2" data-slide="2"><span class="slide-number">2</span>Das Problem</a></li>
+                <li><a href="#slide3" data-slide="3"><span class="slide-number">3</span>Die Lösung</a></li>
+                <li><a href="#slide4" data-slide="4"><span class="slide-number">4</span>Was du brauchst</a></li>
+                <li><a href="#slide5" data-slide="5"><span class="slide-number">5</span>GitHub Setup</a></li>
+                <li><a href="#slide6" data-slide="6"><span class="slide-number">6</span>Claude Setup</a></li>
+                <li><a href="#slide7" data-slide="7"><span class="slide-number">7</span>Der Skill</a></li>
+                <li><a href="#slide8" data-slide="8"><span class="slide-number">8</span>Erste Präsentation</a></li>
+                <li><a href="#slide9" data-slide="9"><span class="slide-number">9</span>Best Practices</a></li>
+                <li><a href="#slide10" data-slide="10"><span class="slide-number">10</span>Troubleshooting</a></li>
+                <li><a href="#slide11" data-slide="11"><span class="slide-number">11</span>Weiterführendes</a></li>
+                <li><a href="#slide12" data-slide="12"><span class="slide-number">12</span>Kontakt</a></li>
+            </ul>
+        </nav>
+
+        <main>
+            <section id="slide1">
+                <h1>Von PowerPoint zu Code</h1>
+                <p class="subtitle">Interaktive Präsentationen mit Claude Code in Minuten</p>
+
+                <div class="glass-card">
+                    <h3>Warum dieser Workflow?</h3>
+                    <p>PowerPoint-Folien landen in Schubladen und E-Mail-Anhängen. Interaktive HTML-Präsentationen funktionieren überall, sind versioniert über Git, und lassen sich per Link teilen - für immer verfügbar.</p>
+                </div>
+
+                <div style="text-align: center; margin: 4rem 0;">
+                    <div class="stat-box">
+                        <div class="stat-number">6</div>
+                        <div class="stat-label">Monate ohne PowerPoint</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-number">2-5</div>
+                        <div class="stat-label">Minuten pro Präsentation</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-number">100%</div>
+                        <div class="stat-label">Interaktivität</div>
+                    </div>
+                </div>
+
+                <p style="font-size: 1.25rem; text-align: center; margin-top: 3rem;"><strong>Diese Präsentation selbst ist ein Beispiel.</strong> Sie wurde mit genau dem Workflow erstellt, den sie erklärt.</p>
+            </section>
+
+            <section id="slide2">
+                <h2>Das Problem</h2>
+
+                <div class="feature-grid">
+                    <div class="feature-card">
+                        <span class="feature-icon">📁</span>
+                        <h3 style="font-size: 1.25rem;">Versions-Chaos</h3>
+                        <p>praesentation_final_v3_WIRKLICH_FINAL.pptx</p>
+                    </div>
+                    <div class="feature-card">
+                        <span class="feature-icon">🔗</span>
+                        <h3 style="font-size: 1.25rem;">Keine Interaktivität</h3>
+                        <p>Links funktionieren nur im Export bedingt</p>
+                    </div>
+                    <div class="feature-card">
+                        <span class="feature-icon">🎨</span>
+                        <h3 style="font-size: 1.25rem;">Manuelle Nacharbeit</h3>
+                        <p>CI muss immer wieder angepasst werden</p>
+                    </div>
+                    <div class="feature-card">
+                        <span class="feature-icon">📧</span>
+                        <h3 style="font-size: 1.25rem;">Sharing-Probleme</h3>
+                        <p>Große Dateien, Formatierungs-Chaos</p>
+                    </div>
+                    <div class="feature-card">
+                        <span class="feature-icon">❌</span>
+                        <h3 style="font-size: 1.25rem;">Keine Versionskontrolle</h3>
+                        <p>Wer hat was wann geändert?</p>
+                    </div>
+                    <div class="feature-card">
+                        <span class="feature-icon">⏱️</span>
+                        <h3 style="font-size: 1.25rem;">Zeitaufwand</h3>
+                        <p>Stunden für Design-Anpassungen</p>
+                    </div>
+                </div>
+
+                <div class="problem-box" style="margin-top: 3rem;">
+                    <p style="font-size: 1.25rem;"><strong>Die Realität:</strong> Die klassischen Tools sind für statische Präsentationen konzipiert. Sobald Sie echte Interaktivität, konsistentes Branding oder nachhaltige Versionierung brauchen, stoßen sie an ihre Grenzen.</p>
+                </div>
+            </section>
+
+            <section id="slide3">
+                <h2>Die Lösung - Übersicht</h2>
+
+                <div class="solution-box">
+                    <h3>Der neue Workflow</h3>
+                    <ul class="checklist">
+                        <li>Claude Code + Custom Skills für automatisierte Erstellung</li>
+                        <li>Automatischer GitHub Push + Pages Aktivierung</li>
+                        <li>CI-konform durch Skill-Konfiguration (Farben, Fonts, Tonalität)</li>
+                        <li>Wirklich interaktiv (Buttons, Filter, Animationen)</li>
+                        <li>Git-basierte Versionierung statt Datei-Chaos</li>
+                        <li>Teilbar per Link statt E-Mail-Anhang</li>
+                        <li>Responsive Design (Mobile + Desktop)</li>
+                        <li>Single-File HTML (keine Dependencies)</li>
+                    </ul>
+                </div>
+
+                <div class="timeline" style="margin-top: 4rem;">
+                    <div class="timeline-item">
+                        <div class="timeline-marker"></div>
+                        <div class="timeline-content">
+                            <h3 style="margin-top: 0;">Prompt schreiben</h3>
+                            <p>30 Sekunden - Thema, Struktur, Anforderungen definieren</p>
+                        </div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-marker"></div>
+                        <div class="timeline-content">
+                            <h3 style="margin-top: 0;">Claude generiert</h3>
+                            <p>2-3 Minuten - HTML, CSS, JavaScript, Interaktivität</p>
+                        </div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-marker"></div>
+                        <div class="timeline-content">
+                            <h3 style="margin-top: 0;">Auto-Deploy</h3>
+                            <p>30 Sekunden - Push zu GitHub, Pages aktivieren</p>
+                        </div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-marker"></div>
+                        <div class="timeline-content">
+                            <h3 style="margin-top: 0;">Live & teilbar</h3>
+                            <p>Sofort - Link teilen, für immer verfügbar</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="slide4">
+                <h2>Was du brauchst</h2>
+
+                <div class="tab-container">
+                    <div class="tab-buttons">
+                        <button class="tab-btn active" onclick="switchTab('accounts')">Accounts</button>
+                        <button class="tab-btn" onclick="switchTab('skills')">Skills & Wissen</button>
+                        <button class="tab-btn" onclick="switchTab('time')">Zeitaufwand</button>
+                    </div>
+
+                    <div class="tab-content active" id="accounts">
+                        <div class="glass-card">
+                            <h3>1. Claude Pro/Team/Enterprise</h3>
+                            <p>Mit Claude Code Zugang (Desktop App oder CLI)</p>
+                            <span class="badge">Essential</span>
+                        </div>
+                        <div class="glass-card">
+                            <h3>2. GitHub Account</h3>
+                            <p>Kostenlos, für Repository-Hosting und GitHub Pages</p>
+                            <span class="badge">Essential</span>
+                        </div>
+                        <div class="glass-card">
+                            <h3>3. GitHub Personal Access Token</h3>
+                            <p>Mit repo + workflow permissions</p>
+                            <span class="badge">Essential</span>
+                        </div>
+                    </div>
+
+                    <div class="tab-content" id="skills">
+                        <div class="glass-card">
+                            <h3>Grundverständnis Markdown</h3>
+                            <p>Für Content-Strukturierung (# Überschrift, - Liste, etc.)</p>
+                            <span class="badge">Nice to have</span>
+                        </div>
+                        <div class="glass-card">
+                            <h3>Git Basics</h3>
+                            <p>Push, Commit, Branch - oder Claude macht es für dich</p>
+                            <span class="badge">Optional</span>
+                        </div>
+                        <div class="glass-card">
+                            <h3>Programmier-Kenntnisse</h3>
+                            <p>NICHT nötig - Claude übernimmt die Umsetzung</p>
+                            <span class="badge">Not required</span>
+                        </div>
+                    </div>
+
+                    <div class="tab-content" id="time">
+                        <div class="glass-card">
+                            <h3>Einmaliges Setup</h3>
+                            <p>15-20 Minuten für GitHub + Claude + Skill-Konfiguration</p>
+                            <div class="stat-box" style="margin: 1rem auto; width: auto;">
+                                <div class="stat-number">20</div>
+                                <div class="stat-label">Minuten einmalig</div>
+                            </div>
+                        </div>
+                        <div class="glass-card">
+                            <h3>Jede weitere Präsentation</h3>
+                            <p>2-5 Minuten Prompt schreiben + generieren lassen</p>
+                            <div class="stat-box" style="margin: 1rem auto; width: auto;">
+                                <div class="stat-number">2-5</div>
+                                <div class="stat-label">Minuten pro Präsentation</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="slide5">
+                <h2>Schritt 1 - GitHub Setup</h2>
+
+                <div class="accordion">
+                    <div class="accordion-item active">
+                        <div class="accordion-header" onclick="toggleAccordion(this)">
+                            <h3 style="margin: 0;"><span class="step-number">1</span>Repository erstellen</h3>
+                            <span class="accordion-icon">▼</span>
+                        </div>
+                        <div class="accordion-content">
+                            <div class="accordion-body">
+                                <ul>
+                                    <li>GitHub.com → "New repository"</li>
+                                    <li>Name: z.B. "meine-praesentation"</li>
+                                    <li>Public oder Private (beides funktioniert)</li>
+                                    <li>Initialize with README (optional)</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="accordion-item">
+                        <div class="accordion-header" onclick="toggleAccordion(this)">
+                            <h3 style="margin: 0;"><span class="step-number">2</span>GitHub Pages aktivieren</h3>
+                            <span class="accordion-icon">▼</span>
+                        </div>
+                        <div class="accordion-content">
+                            <div class="accordion-body">
+                                <ul>
+                                    <li>Repository → Settings → Pages</li>
+                                    <li>Source: "Deploy from a branch"</li>
+                                    <li>Branch: main, Folder: / (root)</li>
+                                    <li>Save</li>
+                                </ul>
+                                <div class="highlight-box">
+                                    <p><strong>Tipp:</strong> Die URL wird automatisch generiert: username.github.io/repo-name</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="accordion-item">
+                        <div class="accordion-header" onclick="toggleAccordion(this)">
+                            <h3 style="margin: 0;"><span class="step-number">3</span>Personal Access Token</h3>
+                            <span class="accordion-icon">▼</span>
+                        </div>
+                        <div class="accordion-content">
+                            <div class="accordion-body">
+                                <div class="code-block">
+                                    <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                                    <pre>GitHub → Settings → Developer settings
+→ Personal access tokens → Tokens (classic)
+→ Generate new token
+
+Scopes auswählen:
+☑ repo (full control)
+☑ workflow
+
+Token kopieren und sicher speichern!</pre>
+                                </div>
+                                <div class="problem-box">
+                                    <p><strong>Wichtig:</strong> Der Token wird nur einmal angezeigt. Speichern Sie ihn sicher in einem Passwort-Manager.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="slide6">
+                <h2>Schritt 2 - Claude Setup</h2>
+
+                <div class="tab-container">
+                    <div class="tab-buttons">
+                        <button class="tab-btn active" onclick="switchTab('desktop-app')">Desktop App</button>
+                        <button class="tab-btn" onclick="switchTab('cli-setup')">CLI Setup</button>
+                    </div>
+
+                    <div class="tab-content active" id="desktop-app">
+                        <div class="glass-card">
+                            <h3><span class="step-number">1</span>Claude Projekt erstellen</h3>
+                            <ul>
+                                <li>Claude.ai → Neues Projekt</li>
+                                <li>Name: "Präsentationen" (oder spezifischer)</li>
+                                <li>Claude Code aktivieren</li>
+                            </ul>
+                        </div>
+
+                        <div class="glass-card">
+                            <h3><span class="step-number">2</span>GitHub Token hinterlegen</h3>
+                            <div class="code-block">
+                                <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                                <pre>In Claude Code Projekt:
+Environment Variables →
+GITHUB_TOKEN=ghp_IhrTokenHier</pre>
+                            </div>
+                            <p style="margin-top: 1rem;">Alternativ: Token bei jeder Präsentation manuell angeben (sicherer, aber umständlicher)</p>
+                        </div>
+                    </div>
+
+                    <div class="tab-content" id="cli-setup">
+                        <div class="glass-card">
+                            <h3>Claude Code CLI Installation</h3>
+                            <div class="code-block">
+                                <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                                <pre># Installation via npm
+npm install -g @anthropic-ai/claude-code
+
+# Oder via Homebrew (macOS)
+brew install claude-code
+
+# Authentifizierung
+claude auth login</pre>
+                            </div>
+                        </div>
+
+                        <div class="glass-card">
+                            <h3>CLI-Vorteile</h3>
+                            <ul class="checklist">
+                                <li>Direkt im Terminal arbeiten</li>
+                                <li>Schneller für repetitive Tasks</li>
+                                <li>Scripting & Automation möglich</li>
+                                <li>Git-Integration nahtlos</li>
+                            </ul>
+                        </div>
+
+                        <div class="glass-card">
+                            <h3>Verwendung</h3>
+                            <div class="code-block">
+                                <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                                <pre># Präsentation erstellen
+claude "Erstelle eine Präsentation über X"
+
+# Mit Projekt-Kontext
+claude --project praesentationen "Neue Präsentation"
+
+# Mit globalem Skill
+claude --skill presentation "Thema: AI Act"</pre>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="slide7">
+                <h2>Schritt 3 - Der Skill</h2>
+
+                <div class="tab-container">
+                    <div class="tab-buttons">
+                        <button class="tab-btn active" onclick="switchTab('project-skill')">Projekt-Skill</button>
+                        <button class="tab-btn" onclick="switchTab('global-skill')">Globaler Skill</button>
+                    </div>
+
+                    <div class="tab-content active" id="project-skill">
+                        <div class="glass-card">
+                            <h3>Projekt-spezifischer Skill</h3>
+                            <p>Für Präsentationen innerhalb eines Claude-Projekts</p>
+
+                            <div class="code-block">
+                                <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                                <pre># Präsentations-Skill Template
+
+Du bist ein Experte für interaktive HTML-Präsentationen.
+
+## Output-Format:
+- Moderne, responsive HTML-Seite
+- Navigation: Desktop = Sidebar, Mobile = Hamburger-Menü
+- Clean Design, kein Framework-Overhead
+- Inline CSS für Performance
+
+## Corporate Identity (ANPASSEN!):
+- Primärfarbe: #3b82f6 (Modern Blue)
+- Sekundärfarbe: #8b5cf6 (Purple)
+- Akzentfarbe: #06b6d4 (Cyan)
+- Schriftart: System Fonts (SF Pro, Segoe UI)
+- Tonalität: Professionell, direkt, lösungsorientiert
+
+## Struktur:
+Jede Präsentation hat:
+1. Navigierbare Sections (Sidebar)
+2. Responsive Layout (Mobile + Desktop)
+3. Interaktive Elemente wo sinnvoll
+4. Code-Blöcke mit Copy-Funktion
+5. Slide-Counter unten rechts
+6. Progress Bar oben
+7. Keyboard Navigation (Pfeiltasten)
+
+## Deployment:
+Nach Erstellung:
+1. Generiere index.html (Single File)
+2. Pushe zu GitHub Repository
+3. Aktiviere GitHub Pages
+4. Gib mir den Live-Link aus</pre>
+                            </div>
+
+                            <div class="highlight-box">
+                                <p><strong>Speicherort:</strong> Im Claude-Projekt unter "Custom Instructions" oder als Projekt-File</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="tab-content" id="global-skill">
+                        <div class="glass-card">
+                            <h3>Globaler Skill - Projektübergreifend</h3>
+                            <p>Zugriff auf den Skill von überall, nicht nur in einem Projekt</p>
+
+                            <div class="code-block">
+                                <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                                <pre># 1. Skill-Datei erstellen
+mkdir -p ~/.claude/skills
+nano ~/.claude/skills/presentation.md
+
+# 2. Skill-Content einfügen (siehe Projekt-Skill)
+
+# 3. Skill verwenden
+claude --skill presentation "Erstelle Präsentation über X"
+
+# Oder in Claude Desktop:
+/skill presentation</pre>
+                            </div>
+                        </div>
+
+                        <div class="glass-card">
+                            <h3>Vorteile globaler Skills</h3>
+                            <ul class="checklist">
+                                <li>Projektübergreifend verfügbar</li>
+                                <li>Zentrale Wartung (einmal anpassen, überall aktiv)</li>
+                                <li>Schneller Zugriff via CLI</li>
+                                <li>Ideal für wiederkehrende Aufgaben</li>
+                                <li>Versionierung möglich (Git in ~/.claude/)</li>
+                            </ul>
+                        </div>
+
+                        <div class="solution-box">
+                            <h3>Empfehlung</h3>
+                            <p><strong>Global für Standard-Präsentationen</strong> mit allgemeinem CI<br>
+                            <strong>Projekt-spezifisch</strong> für Kunden mit speziellem Branding</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="slide8">
+                <h2>Schritt 4 - Erste Präsentation</h2>
+
+                <div class="glass-card">
+                    <h3>Prompt-Beispiel</h3>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                        <pre>Erstelle eine Präsentation zum Thema "Digitale Transformation im Mittelstand".
+
+Struktur:
+- 8 Hauptsections
+- Interaktive Checkliste auf Seite 3 (Voraussetzungen)
+- Filterbare Tabelle auf Seite 5 (Tool-Vergleich)
+- Timeline-Visualisierung auf Seite 6
+- Accordion FAQ auf Seite 7
+
+Deploy auf GitHub Pages:
+Repository: mein-username/digitale-transformation</pre>
+                    </div>
+                </div>
+
+                <div class="timeline" style="margin-top: 3rem;">
+                    <div class="timeline-item">
+                        <div class="timeline-marker"></div>
+                        <div class="timeline-content">
+                            <h3 style="margin-top: 0;">Claude analysiert</h3>
+                            <p>Versteht Struktur, Anforderungen, CI-Vorgaben</p>
+                        </div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-marker"></div>
+                        <div class="timeline-content">
+                            <h3 style="margin-top: 0;">Generiert HTML</h3>
+                            <p>Responsive, interaktiv, CI-konform, Single-File</p>
+                        </div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-marker"></div>
+                        <div class="timeline-content">
+                            <h3 style="margin-top: 0;">Git Push</h3>
+                            <p>Automatischer Push zu GitHub, Pages aktivieren</p>
+                        </div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-marker"></div>
+                        <div class="timeline-content">
+                            <h3 style="margin-top: 0;">Live Link</h3>
+                            <p>username.github.io/digitale-transformation</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="solution-box" style="margin-top: 3rem;">
+                    <h3>Was Claude automatisch macht</h3>
+                    <ul class="checklist">
+                        <li>HTML-Struktur mit Semantic Markup</li>
+                        <li>Responsive CSS (Mobile + Tablet + Desktop)</li>
+                        <li>JavaScript für Interaktivität</li>
+                        <li>Corporate Identity anwenden</li>
+                        <li>Accessibility (ARIA-Labels, Keyboard Nav)</li>
+                        <li>GitHub Push + Pages Aktivierung</li>
+                        <li>Live-Link ausgeben</li>
+                    </ul>
+                </div>
+            </section>
+
+            <section id="slide9">
+                <h2>Best Practices</h2>
+
+                <div class="feature-grid">
+                    <div class="feature-card">
+                        <span class="feature-icon">📁</span>
+                        <h3 style="font-size: 1.25rem;">Repository-Struktur</h3>
+                        <p>Ein Repo = Eine Präsentation für klare URLs</p>
+                    </div>
+                    <div class="feature-card">
+                        <span class="feature-icon">🔀</span>
+                        <h3 style="font-size: 1.25rem;">Git statt Versionen</h3>
+                        <p>Commits mit Messages statt pptx_final_v3</p>
+                    </div>
+                    <div class="feature-card">
+                        <span class="feature-icon">🔗</span>
+                        <h3 style="font-size: 1.25rem;">Links teilen</h3>
+                        <p>GitHub Pages Link statt Dateien mailen</p>
+                    </div>
+                    <div class="feature-card">
+                        <span class="feature-icon">🌐</span>
+                        <h3 style="font-size: 1.25rem;">Custom Domain</h3>
+                        <p>praesentationen.ihre-firma.de</p>
+                    </div>
+                    <div class="feature-card">
+                        <span class="feature-icon">📱</span>
+                        <h3 style="font-size: 1.25rem;">QR-Code</h3>
+                        <p>Für einfachen Zugriff auf Events</p>
+                    </div>
+                    <div class="feature-card">
+                        <span class="feature-icon">✨</span>
+                        <h3 style="font-size: 1.25rem;">Interaktivität gezielt</h3>
+                        <p>Nur wo es echten Mehrwert bringt</p>
+                    </div>
+                </div>
+
+                <div class="glass-card" style="margin-top: 3rem;">
+                    <h3>Interaktive Elemente - Do's & Don'ts</h3>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-top: 2rem;">
+                        <div class="solution-box">
+                            <h3 style="font-size: 1.15rem;">✅ Do's</h3>
+                            <ul>
+                                <li>Checklisten für Step-by-Step</li>
+                                <li>Filter für große Datenmengen</li>
+                                <li>Code-Copy Buttons</li>
+                                <li>Tabs für Content-Organisation</li>
+                                <li>Accordions für FAQs</li>
+                                <li>Timeline für Prozesse</li>
+                            </ul>
+                        </div>
+                        <div class="problem-box">
+                            <h3 style="font-size: 1.15rem;">❌ Don'ts</h3>
+                            <ul>
+                                <li>Animationen ohne Mehrwert</li>
+                                <li>Auto-Play Videos</li>
+                                <li>Zu viele Effekte</li>
+                                <li>Komplexe Interactions</li>
+                                <li>Externe Dependencies</li>
+                                <li>Ablenkende Gimmicks</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="slide10">
+                <h2>Troubleshooting</h2>
+
+                <div class="accordion">
+                    <div class="accordion-item">
+                        <div class="accordion-header" onclick="toggleAccordion(this)">
+                            <h3 style="margin: 0;">🚫 GitHub Pages zeigt nichts</h3>
+                            <span class="accordion-icon">▼</span>
+                        </div>
+                        <div class="accordion-content">
+                            <div class="accordion-body">
+                                <p><strong>Mögliche Ursachen:</strong></p>
+                                <ul>
+                                    <li>index.html nicht im root-Verzeichnis</li>
+                                    <li>GitHub Pages nicht aktiviert</li>
+                                    <li>Falscher Branch ausgewählt</li>
+                                    <li>Deployment noch nicht abgeschlossen (1-2 Min warten)</li>
+                                </ul>
+                                <div class="solution-box">
+                                    <p><strong>Lösung:</strong> Repository → Settings → Pages → Prüfen ob Source korrekt (main, / root)</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="accordion-item">
+                        <div class="accordion-header" onclick="toggleAccordion(this)">
+                            <h3 style="margin: 0;">🎨 Styles fehlen</h3>
+                            <span class="accordion-icon">▼</span>
+                        </div>
+                        <div class="accordion-content">
+                            <div class="accordion-body">
+                                <p><strong>Mögliche Ursachen:</strong></p>
+                                <ul>
+                                    <li>Externe CSS-Files (nicht inline)</li>
+                                    <li>Browser-Cache</li>
+                                    <li>Falsche Pfade</li>
+                                </ul>
+                                <div class="solution-box">
+                                    <p><strong>Lösung:</strong> Inline CSS im &lt;style&gt; Tag nutzen, Browser-Cache leeren (Strg+Shift+R)</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="accordion-item">
+                        <div class="accordion-header" onclick="toggleAccordion(this)">
+                            <h3 style="margin: 0;">🔐 Token-Fehler</h3>
+                            <span class="accordion-icon">▼</span>
+                        </div>
+                        <div class="accordion-content">
+                            <div class="accordion-body">
+                                <p><strong>Mögliche Ursachen:</strong></p>
+                                <ul>
+                                    <li>Falsche Permissions (repo + workflow nötig)</li>
+                                    <li>Token abgelaufen</li>
+                                    <li>Repository-Name falsch geschrieben</li>
+                                </ul>
+                                <div class="solution-box">
+                                    <p><strong>Lösung:</strong> Neuen Token generieren, Permissions prüfen, Repo-Name verifizieren</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="accordion-item">
+                        <div class="accordion-header" onclick="toggleAccordion(this)">
+                            <h3 style="margin: 0;">📱 Nicht responsive</h3>
+                            <span class="accordion-icon">▼</span>
+                        </div>
+                        <div class="accordion-content">
+                            <div class="accordion-body">
+                                <p><strong>Mögliche Ursachen:</strong></p>
+                                <ul>
+                                    <li>Viewport Meta-Tag fehlt</li>
+                                    <li>Keine Media Queries</li>
+                                    <li>Fixed Widths statt responsive Units</li>
+                                </ul>
+                                <div class="solution-box">
+                                    <p><strong>Lösung:</strong> Browser DevTools (F12 → Device Toolbar), Claude um Mobile-Optimierung bitten</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="slide11">
+                <h2>Weiterführendes</h2>
+
+                <div class="glass-card">
+                    <h3>Weitere Custom Skills</h3>
+                    <div class="feature-grid" style="margin-top: 2rem;">
+                        <div class="feature-card">
+                            <span class="feature-icon">📖</span>
+                            <h3 style="font-size: 1.15rem;">Dokumentation</h3>
+                            <p>Tech-Docs mit Sidebar-Navigation</p>
+                        </div>
+                        <div class="feature-card">
+                            <span class="feature-icon">📊</span>
+                            <h3 style="font-size: 1.15rem;">Dashboard</h3>
+                            <p>Interaktive Dashboards mit Live-Daten</p>
+                        </div>
+                        <div class="feature-card">
+                            <span class="feature-icon">📈</span>
+                            <h3 style="font-size: 1.15rem;">Reports</h3>
+                            <p>Datenbasierte Reports mit Charts</p>
+                        </div>
+                        <div class="feature-card">
+                            <span class="feature-icon">🌐</span>
+                            <h3 style="font-size: 1.15rem;">Landing Pages</h3>
+                            <p>Marketing-Pages mit CTAs</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="glass-card">
+                    <h3>MCP Integration für Live-Daten</h3>
+                    <p>Verbinde Claude mit externen Datenquellen:</p>
+                    <ul class="checklist">
+                        <li>Supabase für Datenbank-Zugriff</li>
+                        <li>GitHub für Projekt-Statistiken</li>
+                        <li>n8n für Workflow-Automatisierung</li>
+                        <li>Pinecone für Vector Search</li>
+                        <li>Neo4j für Graph-Daten</li>
+                    </ul>
+                </div>
+
+                <div class="glass-card">
+                    <h3>Custom Domains</h3>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                        <pre>Statt: username.github.io/projekt
+Nutze: praesentationen.deine-domain.de
+
+Setup:
+1. GitHub Pages: Custom domain eintragen
+2. DNS: CNAME Record zu username.github.io
+3. HTTPS via GitHub automatisch</pre>
+                    </div>
+                </div>
+
+                <div class="glass-card">
+                    <h3>GitHub Actions Automatisierung</h3>
+                    <ul class="checklist">
+                        <li>Auto-Deploy bei jedem Push</li>
+                        <li>Automatische PDF-Generierung</li>
+                        <li>Link-Checker für externe URLs</li>
+                        <li>Performance-Monitoring (Lighthouse)</li>
+                        <li>Accessibility-Tests</li>
+                    </ul>
+                </div>
+            </section>
+
+            <section id="slide12">
+                <h2>Kontakt & Ressourcen</h2>
+
+                <div class="author-card">
+                    <div class="author-name">Robert Meyer</div>
+                    <div class="author-titles">Consultant | AI Act Spezialist | Dozent | Autor</div>
+                    <p style="max-width: 600px; margin: 0 auto; font-size: 1.125rem;">Spezialisiert auf digitale Transformation, AI-Integration und regulatorische Compliance. Entwickelt seit 6 Monaten alle Präsentationen ausschließlich mit diesem Workflow.</p>
+                </div>
+
+                <div class="solution-box">
+                    <h3>Ressourcen & Links</h3>
+                    <div class="feature-grid" style="margin-top: 2rem;">
+                        <div class="feature-card">
+                            <span class="feature-icon">🐙</span>
+                            <h3 style="font-size: 1.15rem;">GitHub</h3>
+                            <p>Custom Skills & Templates</p>
+                        </div>
+                        <div class="feature-card">
+                            <span class="feature-icon">💼</span>
+                            <h3 style="font-size: 1.15rem;">LinkedIn</h3>
+                            <p>AI-Workflows & Best Practices</p>
+                        </div>
+                        <div class="feature-card">
+                            <span class="feature-icon">📝</span>
+                            <h3 style="font-size: 1.15rem;">Blog</h3>
+                            <p>Deep Dives in AI-Prozesse</p>
+                        </div>
+                        <div class="feature-card">
+                            <span class="feature-icon">💬</span>
+                            <h3 style="font-size: 1.15rem;">Feedback</h3>
+                            <p>Via GitHub Issues</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="highlight-box">
+                    <h3>Nächste Schritte</h3>
+                    <div class="timeline">
+                        <div class="timeline-item">
+                            <div class="timeline-marker"></div>
+                            <div class="timeline-content">
+                                <h3 style="margin-top: 0;">GitHub Account + Token</h3>
+                                <p>15 Minuten Setup</p>
+                            </div>
+                        </div>
+                        <div class="timeline-item">
+                            <div class="timeline-marker"></div>
+                            <div class="timeline-content">
+                                <h3 style="margin-top: 0;">Claude Projekt + Skill</h3>
+                                <p>5 Minuten Konfiguration</p>
+                            </div>
+                        </div>
+                        <div class="timeline-item">
+                            <div class="timeline-marker"></div>
+                            <div class="timeline-content">
+                                <h3 style="margin-top: 0;">Test-Präsentation</h3>
+                                <p>3 Minuten erste Demo</p>
+                            </div>
+                        </div>
+                        <div class="timeline-item">
+                            <div class="timeline-marker"></div>
+                            <div class="timeline-content">
+                                <h3 style="margin-top: 0;">Production Ready</h3>
+                                <p>In echten Projekten nutzen</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="text-align: center; margin-top: 4rem;">
+                    <h2 style="font-size: 2.5rem; margin-bottom: 1rem;">Viel Erfolg! 🚀</h2>
+                    <p style="font-size: 1.25rem; color: var(--text-muted);">Ihre erste interaktive Präsentation ist nur einen Prompt entfernt.</p>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <div class="slide-counter" id="slide-counter">1 / 12</div>
+
+    <script>
+        const nav = document.getElementById('nav');
+        const hamburger = document.querySelector('.hamburger');
+        const navLinks = document.querySelectorAll('nav a');
+        const sections = document.querySelectorAll('section');
+        const slideCounter = document.getElementById('slide-counter');
+        const progressBar = document.getElementById('progress-bar');
+        const totalSlides = sections.length;
+
+        hamburger.addEventListener('click', () => {
+            nav.classList.toggle('open');
+        });
+
+        navLinks.forEach(link => {
+            link.addEventListener('click', (e) => {
+                navLinks.forEach(l => l.classList.remove('active'));
+                link.classList.add('active');
+
+                if (window.innerWidth <= 768) {
+                    nav.classList.remove('open');
+                }
+            });
+        });
+
+        const updateActiveNav = () => {
+            let current = '';
+            sections.forEach(section => {
+                const sectionTop = section.offsetTop;
+                const sectionHeight = section.clientHeight;
+                if (scrollY >= sectionTop - 200) {
+                    current = section.getAttribute('id');
+                }
+            });
+
+            navLinks.forEach(link => {
+                link.classList.remove('active');
+                if (link.getAttribute('href') === `#${current}`) {
+                    link.classList.add('active');
+                    const slideNum = link.dataset.slide;
+                    slideCounter.textContent = `${slideNum} / ${totalSlides}`;
+                }
+            });
+
+            const scrollPercentage = (window.scrollY / (document.documentElement.scrollHeight - window.innerHeight)) * 100;
+            progressBar.style.transform = `scaleX(${scrollPercentage / 100})`;
+        };
+
+        window.addEventListener('scroll', updateActiveNav);
+        updateActiveNav();
+
+        document.addEventListener('keydown', (e) => {
+            const currentSlide = parseInt(slideCounter.textContent.split('/')[0].trim());
+
+            if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+                e.preventDefault();
+                if (currentSlide < totalSlides) {
+                    document.getElementById(`slide${currentSlide + 1}`).scrollIntoView({ behavior: 'smooth' });
+                }
+            } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+                e.preventDefault();
+                if (currentSlide > 1) {
+                    document.getElementById(`slide${currentSlide - 1}`).scrollIntoView({ behavior: 'smooth' });
+                }
+            }
+        });
+
+        function copyCode(button) {
+            const codeBlock = button.nextElementSibling;
+            const code = codeBlock.textContent;
+
+            navigator.clipboard.writeText(code).then(() => {
+                const originalText = button.textContent;
+                button.textContent = 'Copied!';
+                button.classList.add('copied');
+
+                setTimeout(() => {
+                    button.textContent = originalText;
+                    button.classList.remove('copied');
+                }, 2000);
+            });
+        }
+
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth' });
+                }
+            });
+        });
+
+        function switchTab(tabName) {
+            const allTabs = document.querySelectorAll('.tab-content');
+            const allBtns = document.querySelectorAll('.tab-btn');
+
+            allTabs.forEach(tab => tab.classList.remove('active'));
+            allBtns.forEach(btn => btn.classList.remove('active'));
+
+            document.getElementById(tabName).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        function toggleAccordion(header) {
+            const item = header.parentElement;
+            const wasActive = item.classList.contains('active');
+
+            document.querySelectorAll('.accordion-item').forEach(i => i.classList.remove('active'));
+
+            if (!wasActive) {
+                item.classList.add('active');
+            }
+        }
+
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -100px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, observerOptions);
+
+        sections.forEach(section => {
+            observer.observe(section);
+        });
+    </script>
+</body>
+</html>
