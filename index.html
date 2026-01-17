@@ -12,6 +12,11 @@
             box-sizing: border-box;
         }
 
+        html {
+            overflow-x: hidden;
+            width: 100%;
+        }
+
         :root {
             --bg-color: #0f172a;
             --bg-secondary: #1e293b;
@@ -77,6 +82,12 @@
             background: var(--bg-color);
             line-height: 1.6;
             overflow-x: hidden;
+            width: 100%;
+            max-width: 100vw;
+        }
+
+        * {
+            max-width: 100%;
         }
 
         .background-gradient {
@@ -94,6 +105,9 @@
         .container {
             display: flex;
             min-height: 100vh;
+            width: 100%;
+            max-width: 100vw;
+            overflow-x: hidden;
         }
 
         nav {
@@ -234,6 +248,8 @@
             flex: 1;
             padding: 4rem 5rem;
             max-width: 1100px;
+            width: 100%;
+            overflow-x: hidden;
         }
 
         section {
@@ -242,6 +258,8 @@
             scroll-margin-top: 2rem;
             opacity: 0;
             animation: fadeInUp 0.8s ease forwards;
+            width: 100%;
+            overflow-x: hidden;
         }
 
         section:nth-child(even) {
@@ -746,6 +764,13 @@
             padding: 0 1.5rem 1.5rem;
         }
 
+        .dos-donts-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
         @media (max-width: 1024px) {
             main {
                 padding: 3rem 3rem;
@@ -824,6 +849,55 @@
 
             .timeline-marker {
                 left: 3px;
+            }
+
+            .dos-donts-grid {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+
+            h1 {
+                font-size: 2.5rem !important;
+            }
+
+            h2 {
+                font-size: 2rem !important;
+            }
+
+            h3 {
+                font-size: 1.35rem !important;
+            }
+
+            .code-block {
+                padding: 1.5rem 1rem;
+            }
+
+            .code-block pre {
+                font-size: 0.85rem;
+                word-break: break-word;
+                overflow-wrap: break-word;
+            }
+
+            .glass-card, .solution-box, .problem-box, .highlight-box {
+                padding: 1.5rem;
+            }
+
+            .author-card {
+                padding: 2rem 1.5rem;
+            }
+
+            section {
+                padding: 3rem 0;
+                width: 100%;
+            }
+
+            main {
+                padding: 2rem 1.5rem;
+                width: 100%;
+            }
+
+            .container {
+                width: 100%;
             }
         }
 
@@ -1403,7 +1477,7 @@ Repository: mein-username/digitale-transformation</pre>
                 <div class="glass-card" style="margin-top: 3rem;">
                     <h3>Interaktive Elemente - Do's & Don'ts</h3>
 
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-top: 2rem;">
+                    <div class="dos-donts-grid">
                         <div class="solution-box">
                             <h3 style="font-size: 1.15rem;">✅ Do's</h3>
                             <ul>
